@@ -6,6 +6,37 @@
 <title>Préparation Trail — Carnet d'entraînement</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import { getDatabase, ref, push, onValue, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDvvg8iQMwPFh0cEHG28heBtlg-6lB9_Wc",
+    authDomain: "prepa-trail.firebaseapp.com",
+    databaseURL: "https://prepa-trail-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "prepa-trail",
+    storageBucket: "prepa-trail.firebasestorage.app",
+    messagingSenderId: "336004048836",
+    appId: "1:336004048836:web:af4153eb18ade5b31ea691"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+  const provider = new GoogleAuthProvider();
+
+  // Expose to the rest of the page (regular script below isn't a module)
+  window.fb = { auth, db, ref, push, onValue, query, orderByChild, signOut };
+
+  window.fbLogin = () => signInWithPopup(auth, provider).catch(err => alert("Connexion impossible : " + err.message));
+  window.fbLogout = () => signOut(auth);
+
+  onAuthStateChanged(auth, (user) => {
+    window.currentUser = user;
+    document.dispatchEvent(new CustomEvent('authchange', { detail: user }));
+  });
+</script>
 <style>
   :root {
     --forest: #1B2B22;
@@ -242,11 +273,44 @@
     .day-detail { display: none; }
     .row2 { grid-template-columns: 1fr; }
   }
+  .auth-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .auth-bar .who { color: var(--sage); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .auth-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--chalk);
+    padding: 7px 14px;
+    border-radius: 3px;
+    font-size: 12.5px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .auth-btn:hover { border-color: var(--signal); color: var(--signal); }
+  .locked-msg {
+    text-align: center;
+    color: var(--sage);
+    font-size: 13px;
+    padding: 60px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
+  <div class="auth-bar">
+    <div class="who" id="authWho">Non connecté</div>
+    <button class="auth-btn" id="authBtn" onclick="fbLogin()">Se connecter avec Google</button>
+  </div>
+
+  <div id="appContent" style="display:none;">
   <div class="hero">
     <div class="eyebrow">Prototype — Carnet d'entraînement</div>
     <h1>PRÉPARATION <span>TRAIL</span></h1>
@@ -321,9 +385,39 @@
     <div id="journalList"></div>
   </div>
 
+  </div>
+
+  <div class="locked-msg" id="lockedMsg">Connecte-toi avec ton compte Google pour accéder à ton carnet d'entraînement.</div>
+
 </div>
 
 <script>
+  // --- Auth state handling ---
+  document.addEventListener('authchange', (e) => {
+    const user = e.detail;
+    const appContent = document.getElementById('appContent');
+    const lockedMsg = document.getElementById('lockedMsg');
+    const authWho = document.getElementById('authWho');
+    const authBtn = document.getElementById('authBtn');
+
+    if (user) {
+      appContent.style.display = 'block';
+      lockedMsg.style.display = 'none';
+      authWho.textContent = user.displayName || user.email;
+      authBtn.textContent = 'Se déconnecter';
+      authBtn.onclick = () => fbLogout();
+      loadSessions(user.uid);
+    } else {
+      appContent.style.display = 'none';
+      lockedMsg.style.display = 'block';
+      authWho.textContent = 'Non connecté';
+      authBtn.textContent = 'Se connecter avec Google';
+      authBtn.onclick = () => fbLogin();
+      sessions = [];
+      renderJournal();
+    }
+  });
+
   // --- Race countdown ---
   const raceDate = new Date('2026-10-04T08:00:00');
   const today = new Date();
@@ -372,8 +466,17 @@
     rpeScale.appendChild(btn);
   }
 
-  // --- Journal state (in-memory) ---
+  // --- Sessions state (loaded from Firebase) ---
   let sessions = [];
+
+  function loadSessions(uid) {
+    const sessionsRef = window.fb.ref(window.fb.db, 'users/' + uid + '/sessions');
+    window.fb.onValue(sessionsRef, (snapshot) => {
+      const data = snapshot.val();
+      sessions = data ? Object.values(data).sort((a, b) => b.timestamp - a.timestamp) : [];
+      renderJournal();
+    });
+  }
 
   function logSession() {
     const type = document.getElementById('f-type').value;
@@ -384,20 +487,27 @@
       alert("Indique un niveau de ressenti d'effort (RPE) avant d'enregistrer.");
       return;
     }
+    if (!window.currentUser) {
+      alert("Connecte-toi pour enregistrer une séance.");
+      return;
+    }
 
     const entry = {
       date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+      timestamp: Date.now(),
       type, km: km || '—', rpe: selectedRpe, note
     };
-    sessions.unshift(entry);
-    renderJournal();
-    maybeShowAiNote(entry);
 
-    // reset form
-    document.getElementById('f-km').value = '';
-    document.getElementById('f-note').value = '';
-    document.querySelectorAll('.rpe-btn').forEach(b => b.classList.remove('active'));
-    selectedRpe = null;
+    const sessionsRef = window.fb.ref(window.fb.db, 'users/' + window.currentUser.uid + '/sessions');
+    window.fb.push(sessionsRef, entry)
+      .then(() => {
+        maybeShowAiNote(entry);
+        document.getElementById('f-km').value = '';
+        document.getElementById('f-note').value = '';
+        document.querySelectorAll('.rpe-btn').forEach(b => b.classList.remove('active'));
+        selectedRpe = null;
+      })
+      .catch(err => alert("Erreur d'enregistrement : " + err.message));
   }
 
   function renderJournal() {
