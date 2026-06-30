@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Préparation Trail — Carnet d'entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #1B2B22;
+    --forest-deep: #0F1A14;
+    --dirt: #8B6F47;
+    --chalk: #F5F1E8;
+    --signal: #E8703A;
+    --sage: #7A8B73;
+    --charcoal: #2A2A26;
+    --line: rgba(245,241,232,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--forest-deep);
+    color: var(--chalk);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(122,139,115,0.15), transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(232,112,58,0.08), transparent 45%);
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* HERO — elevation profile as signature */
+  .hero {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 8vw, 64px);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    color: var(--chalk);
+  }
+  h1 span { color: var(--signal); }
+  .hero-meta {
+    display: flex;
+    gap: 28px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .meta-item .num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    color: var(--signal);
+    line-height: 1;
+  }
+  .meta-item .lbl {
+    font-size: 11px;
+    color: var(--sage);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+  }
+  .profile-svg { width: 100%; height: 60px; margin-top: 22px; display: block; }
+
+  /* SECTIONS */
+  .section { margin-bottom: 32px; }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 0.02em;
+  }
+  .section-sub {
+    font-size: 12px;
+    color: var(--sage);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* WEEK PLAN */
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .day-card {
+    background: rgba(245,241,232,0.04);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 10px 8px;
+    min-height: 92px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: border-color 0.15s ease;
+  }
+  .day-card.today { border-color: var(--signal); background: rgba(232,112,58,0.08); }
+  .day-card.done { opacity: 0.55; }
+  .day-name { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sage); font-family: 'JetBrains Mono', monospace; }
+  .day-session { font-size: 12.5px; font-weight: 600; margin-top: 6px; line-height: 1.3; }
+  .day-detail { font-size: 10.5px; color: var(--sage); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .rest-tag { font-size: 11px; color: var(--sage); font-style: italic; margin-top: auto; }
+
+  /* LOG FORM */
+  .card {
+    background: rgba(245,241,232,0.04);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 22px;
+  }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sage);
+    margin-bottom: 7px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  input, select, textarea {
+    width: 100%;
+    background: var(--charcoal);
+    border: 1px solid var(--line);
+    color: var(--chalk);
+    padding: 10px 12px;
+    border-radius: 3px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--signal);
+  }
+  textarea { resize: vertical; min-height: 64px; }
+
+  .rpe-scale {
+    display: flex;
+    gap: 5px;
+  }
+  .rpe-btn {
+    flex: 1;
+    background: var(--charcoal);
+    border: 1px solid var(--line);
+    color: var(--sage);
+    padding: 9px 0;
+    text-align: center;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    transition: all 0.12s ease;
+  }
+  .rpe-btn:hover { border-color: var(--sage); color: var(--chalk); }
+  .rpe-btn.active {
+    background: var(--signal);
+    border-color: var(--signal);
+    color: var(--forest-deep);
+    font-weight: 700;
+  }
+
+  .submit-btn {
+    background: var(--signal);
+    color: var(--forest-deep);
+    border: none;
+    padding: 13px 22px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 6px;
+    transition: filter 0.12s ease;
+  }
+  .submit-btn:hover { filter: brightness(1.1); }
+  .submit-btn:active { filter: brightness(0.95); }
+
+  /* JOURNAL LIST */
+  .log-entry {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    background: rgba(245,241,232,0.03);
+  }
+  .log-left { display: flex; flex-direction: column; gap: 3px; }
+  .log-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--sage); }
+  .log-title { font-weight: 600; font-size: 14.5px; }
+  .log-note { font-size: 12.5px; color: var(--sage); max-width: 420px; }
+  .log-rpe {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--signal);
+    min-width: 38px;
+    text-align: center;
+  }
+  .log-rpe-lbl { font-size: 9px; color: var(--sage); text-transform: uppercase; text-align: center; margin-top: -4px; }
+  .empty-state {
+    text-align: center;
+    color: var(--sage);
+    font-size: 13px;
+    padding: 30px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .ai-note {
+    margin-top: 18px;
+    border-left: 2px solid var(--signal);
+    padding: 12px 16px;
+    background: rgba(232,112,58,0.06);
+    font-size: 13px;
+    line-height: 1.5;
+    border-radius: 0 3px 3px 0;
+    display: none;
+  }
+  .ai-note.show { display: block; }
+  .ai-note b { color: var(--signal); }
+
+  @media (max-width: 560px) {
+    .week-grid { grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .day-card { min-height: 76px; padding: 6px 4px; }
+    .day-session { font-size: 10px; }
+    .day-detail { display: none; }
+    .row2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">Prototype — Carnet d'entraînement</div>
+    <h1>PRÉPARATION <span>TRAIL</span></h1>
+    <div class="hero-meta">
+      <div class="meta-item"><div class="num" id="daysLeft">—</div><div class="lbl">Jours avant le départ</div></div>
+      <div class="meta-item"><div class="num" id="raceKm">80</div><div class="lbl">Kilomètres</div></div>
+      <div class="meta-item"><div class="num" id="weekKm">0</div><div class="lbl">Km cette semaine</div></div>
+      <div class="meta-item"><div class="num" id="sessCount">0</div><div class="lbl">Séances loguées</div></div>
+    </div>
+    <svg class="profile-svg" viewBox="0 0 800 60" preserveAspectRatio="none">
+      <polyline points="0,50 60,42 120,46 180,20 240,30 300,10 360,25 420,15 480,35 540,8 600,28 660,18 720,40 800,12"
+        fill="none" stroke="#7A8B73" stroke-width="1.5" opacity="0.5"/>
+      <polyline points="0,50 60,42 120,46 180,20 240,30 300,10 360,25 420,15 480,35 540,8 600,28 660,18 720,40 800,12"
+        fill="url(#g)" stroke="none" opacity="0.18"/>
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#E8703A"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">Semaine en cours</div>
+      <div class="section-sub">Plan indicatif — à ajuster</div>
+    </div>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">Logger une séance</div>
+      <div class="section-sub">Ressenti = données pour l'ajustement futur</div>
+    </div>
+    <div class="card">
+      <div class="row2">
+        <div class="field">
+          <label>Type de séance</label>
+          <select id="f-type">
+            <option>Sortie longue</option>
+            <option>Fractionné côtes</option>
+            <option>Footing récupération</option>
+            <option>Renforcement</option>
+            <option>Sortie technique / descente</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Distance (km)</label>
+          <input type="number" id="f-km" placeholder="ex. 18" min="0" step="0.5">
+        </div>
+      </div>
+      <div class="field">
+        <label>Ressenti d'effort (RPE 1 — facile / 10 — épuisant)</label>
+        <div class="rpe-scale" id="rpeScale"></div>
+      </div>
+      <div class="field">
+        <label>Notes — douleurs, sommeil, météo, sensations…</label>
+        <textarea id="f-note" placeholder="ex. Petite gêne au genou droit dans la descente, sommeil correct (6h30)"></textarea>
+      </div>
+      <button class="submit-btn" onclick="logSession()">Enregistrer la séance</button>
+      <div class="ai-note" id="aiNote"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">Journal</div>
+      <div class="section-sub" id="journalSub">0 séance</div>
+    </div>
+    <div id="journalList"></div>
+  </div>
+
+</div>
+
+<script>
+  // --- Race countdown ---
+  const raceDate = new Date('2026-10-04T08:00:00');
+  const today = new Date();
+  const diffDays = Math.max(0, Math.ceil((raceDate - today) / 86400000));
+  document.getElementById('daysLeft').textContent = diffDays;
+
+  // --- Week plan (static example data, will later be dynamic) ---
+  const weekPlan = [
+    { day: 'Lun', session: 'Repos', detail: '', rest: true },
+    { day: 'Mar', session: 'Fractionné côtes', detail: '8x3min D+', rest: false },
+    { day: 'Mer', session: 'Footing récup', detail: '8km souple', rest: false },
+    { day: 'Jeu', session: 'Renforcement', detail: 'Gainage + PPG', rest: false },
+    { day: 'Ven', session: 'Repos', detail: '', rest: true },
+    { day: 'Sam', session: 'Sortie longue', detail: '22km D+800m', rest: false, today: true },
+    { day: 'Dim', session: 'Footing récup', detail: '10km plat', rest: false },
+  ];
+
+  const weekGrid = document.getElementById('weekGrid');
+  let weekKmTotal = 0;
+  weekPlan.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'day-card' + (d.today ? ' today' : '');
+    if (d.rest) {
+      card.innerHTML = `<div class="day-name">${d.day}</div><div class="rest-tag">Repos</div>`;
+    } else {
+      card.innerHTML = `<div class="day-name">${d.day}</div><div class="day-session">${d.session}</div><div class="day-detail">${d.detail}</div>`;
+      const kmMatch = d.detail.match(/(\d+)\s*km/);
+      if (kmMatch) weekKmTotal += parseInt(kmMatch[1]);
+    }
+    weekGrid.appendChild(card);
+  });
+  document.getElementById('weekKm').textContent = weekKmTotal;
+
+  // --- RPE selector ---
+  let selectedRpe = null;
+  const rpeScale = document.getElementById('rpeScale');
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('div');
+    btn.className = 'rpe-btn';
+    btn.textContent = i;
+    btn.onclick = () => {
+      document.querySelectorAll('.rpe-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedRpe = i;
+    };
+    rpeScale.appendChild(btn);
+  }
+
+  // --- Journal state (in-memory) ---
+  let sessions = [];
+
+  function logSession() {
+    const type = document.getElementById('f-type').value;
+    const km = document.getElementById('f-km').value;
+    const note = document.getElementById('f-note').value;
+
+    if (!selectedRpe) {
+      alert("Indique un niveau de ressenti d'effort (RPE) avant d'enregistrer.");
+      return;
+    }
+
+    const entry = {
+      date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+      type, km: km || '—', rpe: selectedRpe, note
+    };
+    sessions.unshift(entry);
+    renderJournal();
+    maybeShowAiNote(entry);
+
+    // reset form
+    document.getElementById('f-km').value = '';
+    document.getElementById('f-note').value = '';
+    document.querySelectorAll('.rpe-btn').forEach(b => b.classList.remove('active'));
+    selectedRpe = null;
+  }
+
+  function renderJournal() {
+    const list = document.getElementById('journalList');
+    document.getElementById('sessCount').textContent = sessions.length;
+    document.getElementById('journalSub').textContent = sessions.length + (sessions.length > 1 ? ' séances' : ' séance');
+
+    if (sessions.length === 0) {
+      list.innerHTML = '<div class="empty-state">Aucune séance loguée pour l\'instant — la première entrée apparaîtra ici.</div>';
+      return;
+    }
+    list.innerHTML = sessions.map(s => `
+      <div class="log-entry">
+        <div class="log-left">
+          <div class="log-date">${s.date} · ${s.km} km</div>
+          <div class="log-title">${s.type}</div>
+          ${s.note ? `<div class="log-note">${s.note}</div>` : ''}
+        </div>
+        <div>
+          <div class="log-rpe">${s.rpe}</div>
+          <div class="log-rpe-lbl">RPE</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // --- Simple rule-based "AI suggestion" preview (placeholder logic) ---
+  function maybeShowAiNote(entry) {
+    const note = document.getElementById('aiNote');
+    const painMentioned = /douleur|gêne|mal au|blessure/i.test(entry.note);
+    const highRpe = entry.rpe >= 8;
+
+    if (painMentioned) {
+      note.innerHTML = `<b>Suggestion :</b> une gêne a été signalée. Dans la vraie version, l'IA proposerait ici d'alléger la prochaine sortie longue et surveiller l'évolution avant de revenir à l'intensité prévue.`;
+      note.classList.add('show');
+    } else if (highRpe) {
+      note.innerHTML = `<b>Suggestion :</b> ressenti d'effort élevé (${entry.rpe}/10). L'IA pourrait recommander une journée de récupération supplémentaire avant la prochaine séance intense.`;
+      note.classList.add('show');
+    } else {
+      note.classList.remove('show');
+    }
+  }
+
+  renderJournal();
+</script>
+</body>
+</html>
