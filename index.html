@@ -6,10 +6,11 @@
 <title>Préparation Trail — Carnet d'entraînement</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  import { getDatabase, ref, push, onValue, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDvvg8iQMwPFh0cEHG28heBtlg-6lB9_Wc",
@@ -26,9 +27,7 @@
   const db = getDatabase(app);
   const provider = new GoogleAuthProvider();
 
-  // Expose to the rest of the page (regular script below isn't a module)
-  window.fb = { auth, db, ref, push, onValue, query, orderByChild, signOut };
-
+  window.fb = { auth, db, ref, push, onValue, signOut };
   window.fbLogin = () => signInWithPopup(auth, provider).catch(err => alert("Connexion impossible : " + err.message));
   window.fbLogout = () => signOut(auth);
 
@@ -37,6 +36,7 @@
     document.dispatchEvent(new CustomEvent('authchange', { detail: user }));
   });
 </script>
+
 <style>
   :root {
     --forest: #1B2B22;
@@ -49,219 +49,302 @@
     --line: rgba(245,241,232,0.12);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
   body {
     background: var(--forest-deep);
     color: var(--chalk);
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
-    background-image:
-      radial-gradient(circle at 15% 0%, rgba(122,139,115,0.15), transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(232,112,58,0.08), transparent 45%);
-  }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
-
-  /* HERO — elevation profile as signature */
-  .hero {
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 28px;
-    margin-bottom: 28px;
-  }
-  .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--sage);
-    margin-bottom: 10px;
-  }
-  h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(40px, 8vw, 64px);
-    line-height: 0.95;
-    letter-spacing: 0.01em;
-    color: var(--chalk);
-  }
-  h1 span { color: var(--signal); }
-  .hero-meta {
-    display: flex;
-    gap: 28px;
-    margin-top: 18px;
-    flex-wrap: wrap;
-  }
-  .meta-item .num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 30px;
-    color: var(--signal);
-    line-height: 1;
-  }
-  .meta-item .lbl {
-    font-size: 11px;
-    color: var(--sage);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-top: 4px;
-  }
-  .profile-svg { width: 100%; height: 60px; margin-top: 22px; display: block; }
-
-  /* SECTIONS */
-  .section { margin-bottom: 32px; }
-  .section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 14px;
-  }
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
-    letter-spacing: 0.02em;
-  }
-  .section-sub {
-    font-size: 12px;
-    color: var(--sage);
-    font-family: 'JetBrains Mono', monospace;
   }
 
-  /* WEEK PLAN */
-  .week-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-  }
-  .day-card {
-    background: rgba(245,241,232,0.04);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    padding: 10px 8px;
-    min-height: 92px;
+  /* ============ LANDING / LOGIN SCREEN ============ */
+  #landing {
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    transition: border-color 0.15s ease;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 24px;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(122,139,115,0.18), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(232,112,58,0.12), transparent 50%),
+      var(--forest-deep);
   }
+  .landing-ridge {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%;
+    height: 38vh;
+    opacity: 0.9;
+  }
+  .landing-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 520px;
+  }
+  .landing-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 18px;
+  }
+  .landing-eyebrow::before { content: '◢ '; color: var(--signal); }
+  .landing-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 11vw, 92px);
+    line-height: 0.92;
+    letter-spacing: 0.01em;
+  }
+  .landing-title span { color: var(--signal); display: block; }
+  .landing-tagline {
+    margin-top: 18px;
+    color: var(--sage);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .landing-stats {
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+    margin-top: 34px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .landing-stat .n { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--chalk); }
+  .landing-stat .l { font-size: 10.5px; color: var(--sage); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+  .google-btn {
+    margin-top: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--chalk);
+    color: var(--forest-deep);
+    border: none;
+    padding: 14px 28px;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 0 0 1px rgba(245,241,232,0.08);
+  }
+  .google-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
+  .google-btn:active { transform: translateY(0); }
+  .google-btn svg { width: 19px; height: 19px; }
+
+  .landing-foot {
+    margin-top: 22px;
+    font-size: 11.5px;
+    color: rgba(122,139,115,0.7);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ============ APP SHELL ============ */
+  #appShell { display: none; min-height: 100vh; }
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    background: rgba(15,26,20,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    user-select: none;
+  }
+  .brand span { color: var(--signal); }
+
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+  .user-chip {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--sage); font-family: 'JetBrains Mono', monospace;
+  }
+  .user-chip img { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line); }
+  .logout-link {
+    background: none; border: none; color: var(--sage); font-size: 12px; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px; font-family: 'Inter', sans-serif;
+  }
+  .logout-link:hover { color: var(--signal); }
+
+  /* DROPDOWN NAV */
+  .nav-dropdown { position: relative; }
+  .nav-trigger {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--charcoal);
+    border: 1px solid var(--line);
+    color: var(--chalk);
+    padding: 9px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .nav-trigger:hover { border-color: var(--sage); }
+  .nav-trigger .chev { transition: transform 0.15s ease; font-size: 10px; color: var(--sage); }
+  .nav-trigger.open .chev { transform: rotate(180deg); }
+
+  .nav-menu {
+    position: absolute; right: 0; top: calc(100% + 8px);
+    background: var(--forest);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    width: 260px;
+    padding: 8px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    opacity: 0; visibility: hidden; transform: translateY(-6px);
+    transition: all 0.15s ease;
+    z-index: 60;
+  }
+  .nav-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .nav-item:hover { background: rgba(245,241,232,0.06); }
+  .nav-item.active { background: rgba(232,112,58,0.1); color: var(--signal); }
+  .nav-item .ico {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--sage);
+    width: 20px;
+  }
+  .nav-item.active .ico { color: var(--signal); }
+  .nav-divider { height: 1px; background: var(--line); margin: 6px 4px; }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+  .view { display: none; }
+  .view.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* HERO (dashboard view) */
+  .hero { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 28px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--sage); margin-bottom: 10px;
+  }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px, 8vw, 64px); line-height: 0.95; letter-spacing: 0.01em; }
+  h1 span { color: var(--signal); }
+  .hero-meta { display: flex; gap: 28px; margin-top: 18px; flex-wrap: wrap; }
+  .meta-item .num { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--signal); line-height: 1; }
+  .meta-item .lbl { font-size: 11px; color: var(--sage); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+  .profile-svg { width: 100%; height: 60px; margin-top: 22px; display: block; }
+
+  .section { margin-bottom: 32px; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 0.02em; }
+  .section-sub { font-size: 12px; color: var(--sage); font-family: 'JetBrains Mono', monospace; }
+
+  .page-head { margin-bottom: 24px; }
+  .page-head h2 { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 0.01em; }
+  .page-head p { color: var(--sage); font-size: 13.5px; margin-top: 6px; }
+
+  /* WEEK PLAN */
+  .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .day-card {
+    background: rgba(245,241,232,0.04); border: 1px solid var(--line); border-radius: 3px;
+    padding: 10px 8px; min-height: 92px; display: flex; flex-direction: column; justify-content: space-between;
+    transition: border-color 0.15s ease; cursor: pointer;
+  }
+  .day-card:hover { border-color: var(--sage); }
   .day-card.today { border-color: var(--signal); background: rgba(232,112,58,0.08); }
-  .day-card.done { opacity: 0.55; }
   .day-name { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sage); font-family: 'JetBrains Mono', monospace; }
   .day-session { font-size: 12.5px; font-weight: 600; margin-top: 6px; line-height: 1.3; }
   .day-detail { font-size: 10.5px; color: var(--sage); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
   .rest-tag { font-size: 11px; color: var(--sage); font-style: italic; margin-top: auto; }
 
-  /* LOG FORM */
-  .card {
-    background: rgba(245,241,232,0.04);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 22px;
+  /* DETAILED SESSIONS (accordion) */
+  .acc-item { border: 1px solid var(--line); border-radius: 5px; margin-bottom: 10px; overflow: hidden; background: rgba(245,241,232,0.03); }
+  .acc-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px; cursor: pointer;
   }
+  .acc-head:hover { background: rgba(245,241,232,0.03); }
+  .acc-head-left { display: flex; align-items: center; gap: 14px; }
+  .acc-day-badge {
+    font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: var(--signal);
+    border: 1px solid var(--signal); border-radius: 3px; padding: 3px 9px; min-width: 44px; text-align: center;
+  }
+  .acc-day-badge.rest { color: var(--sage); border-color: var(--line); }
+  .acc-title { font-weight: 700; font-size: 14.5px; }
+  .acc-meta { font-size: 11.5px; color: var(--sage); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+  .acc-chev { color: var(--sage); transition: transform 0.2s ease; font-size: 12px; }
+  .acc-item.open .acc-chev { transform: rotate(180deg); }
+  .acc-body { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+  .acc-item.open .acc-body { max-height: 400px; }
+  .acc-body-inner { padding: 0 18px 18px; font-size: 13px; color: var(--chalk); line-height: 1.7; }
+  .acc-body-inner b { color: var(--signal); }
+  .acc-tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .acc-tag {
+    font-size: 10.5px; font-family: 'JetBrains Mono', monospace; color: var(--sage);
+    border: 1px solid var(--line); border-radius: 20px; padding: 4px 10px;
+  }
+
+  /* LOG FORM */
+  .card { background: rgba(245,241,232,0.04); border: 1px solid var(--line); border-radius: 4px; padding: 22px; }
   .field { margin-bottom: 16px; }
   .field label {
-    display: block;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--sage);
-    margin-bottom: 7px;
-    font-family: 'JetBrains Mono', monospace;
+    display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--sage); margin-bottom: 7px; font-family: 'JetBrains Mono', monospace;
   }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   input, select, textarea {
-    width: 100%;
-    background: var(--charcoal);
-    border: 1px solid var(--line);
-    color: var(--chalk);
-    padding: 10px 12px;
-    border-radius: 3px;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
+    width: 100%; background: var(--charcoal); border: 1px solid var(--line); color: var(--chalk);
+    padding: 10px 12px; border-radius: 3px; font-family: 'Inter', sans-serif; font-size: 14px;
   }
-  input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--signal);
-  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--signal); }
   textarea { resize: vertical; min-height: 64px; }
 
-  .rpe-scale {
-    display: flex;
-    gap: 5px;
-  }
+  .rpe-scale { display: flex; gap: 5px; }
   .rpe-btn {
-    flex: 1;
-    background: var(--charcoal);
-    border: 1px solid var(--line);
-    color: var(--sage);
-    padding: 9px 0;
-    text-align: center;
-    border-radius: 3px;
-    cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    transition: all 0.12s ease;
+    flex: 1; background: var(--charcoal); border: 1px solid var(--line); color: var(--sage);
+    padding: 9px 0; text-align: center; border-radius: 3px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; transition: all 0.12s ease;
   }
   .rpe-btn:hover { border-color: var(--sage); color: var(--chalk); }
-  .rpe-btn.active {
-    background: var(--signal);
-    border-color: var(--signal);
-    color: var(--forest-deep);
-    font-weight: 700;
-  }
+  .rpe-btn.active { background: var(--signal); border-color: var(--signal); color: var(--forest-deep); font-weight: 700; }
 
   .submit-btn {
-    background: var(--signal);
-    color: var(--forest-deep);
-    border: none;
-    padding: 13px 22px;
-    border-radius: 3px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 6px;
-    transition: filter 0.12s ease;
+    background: var(--signal); color: var(--forest-deep); border: none; padding: 13px 22px;
+    border-radius: 3px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%;
+    margin-top: 6px; transition: filter 0.12s ease;
   }
   .submit-btn:hover { filter: brightness(1.1); }
   .submit-btn:active { filter: brightness(0.95); }
 
   /* JOURNAL LIST */
   .log-entry {
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 14px;
+    border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center; gap: 14px;
     background: rgba(245,241,232,0.03);
   }
   .log-left { display: flex; flex-direction: column; gap: 3px; }
   .log-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--sage); }
   .log-title { font-weight: 600; font-size: 14.5px; }
   .log-note { font-size: 12.5px; color: var(--sage); max-width: 420px; }
-  .log-rpe {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    color: var(--signal);
-    min-width: 38px;
-    text-align: center;
-  }
+  .log-rpe { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--signal); min-width: 38px; text-align: center; }
   .log-rpe-lbl { font-size: 9px; color: var(--sage); text-transform: uppercase; text-align: center; margin-top: -4px; }
-  .empty-state {
-    text-align: center;
-    color: var(--sage);
-    font-size: 13px;
-    padding: 30px 0;
-    font-family: 'JetBrains Mono', monospace;
-  }
+  .empty-state { text-align: center; color: var(--sage); font-size: 13px; padding: 30px 0; font-family: 'JetBrains Mono', monospace; }
 
   .ai-note {
-    margin-top: 18px;
-    border-left: 2px solid var(--signal);
-    padding: 12px 16px;
-    background: rgba(232,112,58,0.06);
-    font-size: 13px;
-    line-height: 1.5;
-    border-radius: 0 3px 3px 0;
-    display: none;
+    margin-top: 18px; border-left: 2px solid var(--signal); padding: 12px 16px;
+    background: rgba(232,112,58,0.06); font-size: 13px; line-height: 1.5;
+    border-radius: 0 3px 3px 0; display: none;
   }
   .ai-note.show { display: block; }
   .ai-note b { color: var(--signal); }
@@ -272,186 +355,311 @@
     .day-session { font-size: 10px; }
     .day-detail { display: none; }
     .row2 { grid-template-columns: 1fr; }
-  }
-  .auth-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    margin-bottom: 8px;
-    font-size: 13px;
-  }
-  .auth-bar .who { color: var(--sage); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-  .auth-btn {
-    background: transparent;
-    border: 1px solid var(--line);
-    color: var(--chalk);
-    padding: 7px 14px;
-    border-radius: 3px;
-    font-size: 12.5px;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-  }
-  .auth-btn:hover { border-color: var(--signal); color: var(--signal); }
-  .locked-msg {
-    text-align: center;
-    color: var(--sage);
-    font-size: 13px;
-    padding: 60px 0;
-    font-family: 'JetBrains Mono', monospace;
+    .landing-stats { gap: 22px; }
+    .nav-menu { width: 230px; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="auth-bar">
-    <div class="who" id="authWho">Non connecté</div>
-    <button class="auth-btn" id="authBtn" onclick="fbLogin()">Se connecter avec Google</button>
-  </div>
+<!-- ============ LANDING / LOGIN ============ -->
+<div id="landing">
+  <svg class="landing-ridge" viewBox="0 0 1200 300" preserveAspectRatio="none">
+    <polyline points="0,260 80,220 160,240 260,150 340,190 420,90 520,170 600,110 700,200 800,80 900,180 1000,120 1100,220 1200,140 1200,300 0,300"
+      fill="#1B2B22" opacity="0.6"/>
+    <polyline points="0,280 100,250 200,265 300,200 400,230 500,160 600,210 700,170 800,230 900,150 1000,210 1100,180 1200,240 1200,300 0,300"
+      fill="#0F1A14" opacity="0.8"/>
+  </svg>
+  <div class="landing-inner">
+    <div class="landing-eyebrow">Carnet d'entraînement personnel</div>
+    <div class="landing-title">PRÉPARATION<span>TRAIL</span></div>
+    <p class="landing-tagline">Planifie tes séances, logue tes sensations, et laisse les données guider tes ajustements — semaine après semaine, jusqu'au jour J.</p>
 
-  <div id="appContent" style="display:none;">
-  <div class="hero">
-    <div class="eyebrow">Prototype — Carnet d'entraînement</div>
-    <h1>PRÉPARATION <span>TRAIL</span></h1>
-    <div class="hero-meta">
-      <div class="meta-item"><div class="num" id="daysLeft">—</div><div class="lbl">Jours avant le départ</div></div>
-      <div class="meta-item"><div class="num" id="raceKm">80</div><div class="lbl">Kilomètres</div></div>
-      <div class="meta-item"><div class="num" id="weekKm">0</div><div class="lbl">Km cette semaine</div></div>
-      <div class="meta-item"><div class="num" id="sessCount">0</div><div class="lbl">Séances loguées</div></div>
+    <div class="landing-stats">
+      <div class="landing-stat"><div class="n" id="landDays">—</div><div class="l">Jours restants</div></div>
+      <div class="landing-stat"><div class="n">7j/7</div><div class="l">Suivi continu</div></div>
+      <div class="landing-stat"><div class="n">100%</div><div class="l">Privé</div></div>
     </div>
-    <svg class="profile-svg" viewBox="0 0 800 60" preserveAspectRatio="none">
-      <polyline points="0,50 60,42 120,46 180,20 240,30 300,10 360,25 420,15 480,35 540,8 600,28 660,18 720,40 800,12"
-        fill="none" stroke="#7A8B73" stroke-width="1.5" opacity="0.5"/>
-      <polyline points="0,50 60,42 120,46 180,20 240,30 300,10 360,25 420,15 480,35 540,8 600,28 660,18 720,40 800,12"
-        fill="url(#g)" stroke="none" opacity="0.18"/>
-      <defs>
-        <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#E8703A"/>
-          <stop offset="100%" stop-color="transparent"/>
-        </linearGradient>
-      </defs>
-    </svg>
-  </div>
 
-  <div class="section">
-    <div class="section-head">
-      <div class="section-title">Semaine en cours</div>
-      <div class="section-sub">Plan indicatif — à ajuster</div>
-    </div>
-    <div class="week-grid" id="weekGrid"></div>
+    <button class="google-btn" onclick="fbLogin()">
+      <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-2.1 14-5.5l-6.5-5.3c-2 1.4-4.6 2.3-7.5 2.3-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.3C41.6 35.6 44 30.2 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+      Se connecter avec Google
+    </button>
+    <div class="landing-foot">Connexion sécurisée — tes données restent privées et liées à ton compte uniquement.</div>
   </div>
+</div>
 
-  <div class="section">
-    <div class="section-head">
-      <div class="section-title">Logger une séance</div>
-      <div class="section-sub">Ressenti = données pour l'ajustement futur</div>
-    </div>
-    <div class="card">
-      <div class="row2">
-        <div class="field">
-          <label>Type de séance</label>
-          <select id="f-type">
-            <option>Sortie longue</option>
-            <option>Fractionné côtes</option>
-            <option>Footing récupération</option>
-            <option>Renforcement</option>
-            <option>Sortie technique / descente</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Distance (km)</label>
-          <input type="number" id="f-km" placeholder="ex. 18" min="0" step="0.5">
+<!-- ============ APP SHELL ============ -->
+<div id="appShell">
+  <div class="topbar">
+    <div class="brand" onclick="goTo('dashboard')">PRÉPA<span>TRAIL</span></div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <img id="userAvatar" src="" alt="">
+        <span id="userName"></span>
+      </div>
+      <div class="nav-dropdown">
+        <button class="nav-trigger" id="navTrigger" onclick="toggleNav()">
+          Menu <span class="chev">▾</span>
+        </button>
+        <div class="nav-menu" id="navMenu">
+          <div class="nav-item active" data-view="dashboard" onclick="goTo('dashboard')"><span class="ico">◆</span> Tableau de bord</div>
+          <div class="nav-item" data-view="planning" onclick="goTo('planning')"><span class="ico">▤</span> Planning de la semaine</div>
+          <div class="nav-item" data-view="seances" onclick="goTo('seances')"><span class="ico">≡</span> Séances détaillées</div>
+          <div class="nav-divider"></div>
+          <div class="nav-item" data-view="logger" onclick="goTo('logger')"><span class="ico">＋</span> Logger une séance</div>
+          <div class="nav-item" data-view="journal" onclick="goTo('journal')"><span class="ico">▦</span> Journal d'entraînement</div>
+          <div class="nav-divider"></div>
+          <div class="nav-item" onclick="fbLogout()"><span class="ico">⏻</span> Se déconnecter</div>
         </div>
       </div>
-      <div class="field">
-        <label>Ressenti d'effort (RPE 1 — facile / 10 — épuisant)</label>
-        <div class="rpe-scale" id="rpeScale"></div>
-      </div>
-      <div class="field">
-        <label>Notes — douleurs, sommeil, météo, sensations…</label>
-        <textarea id="f-note" placeholder="ex. Petite gêne au genou droit dans la descente, sommeil correct (6h30)"></textarea>
-      </div>
-      <button class="submit-btn" onclick="logSession()">Enregistrer la séance</button>
-      <div class="ai-note" id="aiNote"></div>
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-head">
-      <div class="section-title">Journal</div>
-      <div class="section-sub" id="journalSub">0 séance</div>
+  <div class="wrap">
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view active" id="view-dashboard">
+      <div class="hero">
+        <div class="eyebrow">Vue d'ensemble</div>
+        <h1>TON <span>BLOCK</span> EN COURS</h1>
+        <div class="hero-meta">
+          <div class="meta-item"><div class="num" id="daysLeft">—</div><div class="lbl">Jours avant le départ</div></div>
+          <div class="meta-item"><div class="num" id="raceKm">80</div><div class="lbl">Kilomètres</div></div>
+          <div class="meta-item"><div class="num" id="weekKm">0</div><div class="lbl">Km cette semaine</div></div>
+          <div class="meta-item"><div class="num" id="sessCount">0</div><div class="lbl">Séances loguées</div></div>
+        </div>
+        <svg class="profile-svg" viewBox="0 0 800 60" preserveAspectRatio="none">
+          <polyline points="0,50 60,42 120,46 180,20 240,30 300,10 360,25 420,15 480,35 540,8 600,28 660,18 720,40 800,12"
+            fill="none" stroke="#7A8B73" stroke-width="1.5" opacity="0.5"/>
+          <polyline points="0,50 60,42 120,46 180,20 240,30 300,10 360,25 420,15 480,35 540,8 600,28 660,18 720,40 800,12"
+            fill="url(#g)" stroke="none" opacity="0.18"/>
+          <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E8703A"/><stop offset="100%" stop-color="transparent"/>
+          </linearGradient></defs>
+        </svg>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Aperçu de la semaine</div>
+          <div class="section-sub" onclick="goTo('planning')" style="cursor:pointer; text-decoration:underline;">voir le détail →</div>
+        </div>
+        <div class="week-grid" id="weekGridDash"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Dernières séances</div>
+          <div class="section-sub" onclick="goTo('journal')" style="cursor:pointer; text-decoration:underline;">journal complet →</div>
+        </div>
+        <div id="journalListDash"></div>
+      </div>
     </div>
-    <div id="journalList"></div>
-  </div>
+
+    <!-- PLANNING VIEW -->
+    <div class="view" id="view-planning">
+      <div class="page-head">
+        <h2>Planning de la semaine</h2>
+        <p>Vue d'ensemble — clique sur un jour pour voir le détail dans "Séances détaillées".</p>
+      </div>
+      <div class="week-grid" id="weekGridFull"></div>
+    </div>
+
+    <!-- SEANCES DETAILLEES VIEW -->
+    <div class="view" id="view-seances">
+      <div class="page-head">
+        <h2>Séances détaillées</h2>
+        <p>Le contenu précis de chaque séance de la semaine — objectif, allure, consignes.</p>
+      </div>
+      <div id="accordionList"></div>
+    </div>
+
+    <!-- LOGGER VIEW -->
+    <div class="view" id="view-logger">
+      <div class="page-head">
+        <h2>Logger une séance</h2>
+        <p>Ton ressenti est la donnée la plus utile pour ajuster la suite du plan.</p>
+      </div>
+      <div class="card">
+        <div class="row2">
+          <div class="field">
+            <label>Type de séance</label>
+            <select id="f-type">
+              <option>Sortie longue</option>
+              <option>Fractionné côtes</option>
+              <option>Footing récupération</option>
+              <option>Renforcement</option>
+              <option>Sortie technique / descente</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Distance (km)</label>
+            <input type="number" id="f-km" placeholder="ex. 18" min="0" step="0.5">
+          </div>
+        </div>
+        <div class="field">
+          <label>Ressenti d'effort (RPE 1 — facile / 10 — épuisant)</label>
+          <div class="rpe-scale" id="rpeScale"></div>
+        </div>
+        <div class="field">
+          <label>Notes — douleurs, sommeil, météo, sensations…</label>
+          <textarea id="f-note" placeholder="ex. Petite gêne au genou droit dans la descente, sommeil correct (6h30)"></textarea>
+        </div>
+        <button class="submit-btn" onclick="logSession()">Enregistrer la séance</button>
+        <div class="ai-note" id="aiNote"></div>
+      </div>
+    </div>
+
+    <!-- JOURNAL VIEW -->
+    <div class="view" id="view-journal">
+      <div class="page-head">
+        <h2>Journal d'entraînement</h2>
+        <p id="journalSub">0 séance enregistrée</p>
+      </div>
+      <div id="journalList"></div>
+    </div>
 
   </div>
-
-  <div class="locked-msg" id="lockedMsg">Connecte-toi avec ton compte Google pour accéder à ton carnet d'entraînement.</div>
-
 </div>
 
 <script>
-  // --- Auth state handling ---
+  // ============ AUTH ============
   document.addEventListener('authchange', (e) => {
     const user = e.detail;
-    const appContent = document.getElementById('appContent');
-    const lockedMsg = document.getElementById('lockedMsg');
-    const authWho = document.getElementById('authWho');
-    const authBtn = document.getElementById('authBtn');
-
     if (user) {
-      appContent.style.display = 'block';
-      lockedMsg.style.display = 'none';
-      authWho.textContent = user.displayName || user.email;
-      authBtn.textContent = 'Se déconnecter';
-      authBtn.onclick = () => fbLogout();
+      document.getElementById('landing').style.display = 'none';
+      document.getElementById('appShell').style.display = 'block';
+      document.getElementById('userName').textContent = user.displayName || user.email;
+      document.getElementById('userAvatar').src = user.photoURL || '';
       loadSessions(user.uid);
     } else {
-      appContent.style.display = 'none';
-      lockedMsg.style.display = 'block';
-      authWho.textContent = 'Non connecté';
-      authBtn.textContent = 'Se connecter avec Google';
-      authBtn.onclick = () => fbLogin();
+      document.getElementById('landing').style.display = 'flex';
+      document.getElementById('appShell').style.display = 'none';
       sessions = [];
-      renderJournal();
     }
   });
 
-  // --- Race countdown ---
-  const raceDate = new Date('2026-10-04T08:00:00');
-  const today = new Date();
-  const diffDays = Math.max(0, Math.ceil((raceDate - today) / 86400000));
-  document.getElementById('daysLeft').textContent = diffDays;
+  // ============ NAV DROPDOWN ============
+  function toggleNav() {
+    document.getElementById('navMenu').classList.toggle('open');
+    document.getElementById('navTrigger').classList.toggle('open');
+  }
+  document.addEventListener('click', (e) => {
+    const dd = document.querySelector('.nav-dropdown');
+    if (dd && !dd.contains(e.target)) {
+      document.getElementById('navMenu').classList.remove('open');
+      document.getElementById('navTrigger').classList.remove('open');
+    }
+  });
+  function goTo(viewName) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + viewName).classList.add('active');
+    document.querySelectorAll('.nav-item[data-view]').forEach(n => n.classList.remove('active'));
+    const navItem = document.querySelector('.nav-item[data-view="' + viewName + '"]');
+    if (navItem) navItem.classList.add('active');
+    document.getElementById('navMenu').classList.remove('open');
+    document.getElementById('navTrigger').classList.remove('open');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
-  // --- Week plan (static example data, will later be dynamic) ---
+  // ============ RACE COUNTDOWN ============
+  const raceDate = new Date('2026-10-04T08:00:00');
+  const diffDays = Math.max(0, Math.ceil((raceDate - new Date()) / 86400000));
+  document.getElementById('daysLeft').textContent = diffDays;
+  document.getElementById('landDays').textContent = diffDays;
+
+  // ============ WEEK PLAN (static example data) ============
   const weekPlan = [
-    { day: 'Lun', session: 'Repos', detail: '', rest: true },
-    { day: 'Mar', session: 'Fractionné côtes', detail: '8x3min D+', rest: false },
-    { day: 'Mer', session: 'Footing récup', detail: '8km souple', rest: false },
-    { day: 'Jeu', session: 'Renforcement', detail: 'Gainage + PPG', rest: false },
-    { day: 'Ven', session: 'Repos', detail: '', rest: true },
-    { day: 'Sam', session: 'Sortie longue', detail: '22km D+800m', rest: false, today: true },
-    { day: 'Dim', session: 'Footing récup', detail: '10km plat', rest: false },
+    { day: 'Lun', session: 'Repos', detail: '', rest: true,
+      goal: '', desc: '' },
+    { day: 'Mar', session: 'Fractionné côtes', detail: '8x3min D+', rest: false, today: false,
+      goal: 'Puissance et résistance en côte',
+      desc: '15min d\'échauffement souple, puis <b>8 répétitions de 3 minutes</b> en côte à allure soutenue (effort 7-8/10), récupération en descente trottinée. Terminer par 10min de retour au calme.',
+      tags: ['D+ ciblé', 'Intensité', '~10km'] },
+    { day: 'Mer', session: 'Footing récup', detail: '8km souple', rest: false,
+      goal: 'Récupération active',
+      desc: '<b>8km à allure très facile</b> (effort 3-4/10), terrain plat ou roulant. L\'objectif est de faire circuler le sang, pas de performer.',
+      tags: ['Facile', 'Plat', '8km'] },
+    { day: 'Jeu', session: 'Renforcement', detail: 'Gainage + PPG', rest: false,
+      goal: 'Prévention blessures, gainage',
+      desc: '<b>Circuit de 35-40min</b> : gainage (planche, gainage latéral), squats unijambistes, mollets, proprioception sur surface instable. Pas de course.',
+      tags: ['Renfo', '40min'] },
+    { day: 'Ven', session: 'Repos', detail: '', rest: true, goal: '', desc: '' },
+    { day: 'Sam', session: 'Sortie longue', detail: '22km D+800m', rest: false, today: true,
+      goal: 'Endurance fondamentale + dénivelé',
+      desc: '<b>22km avec environ 800m de dénivelé positif</b>, allure d\'endurance fondamentale (effort 5-6/10) en montée, marche active dans les passages les plus raides. Tester l\'alimentation et l\'hydratation comme en course.',
+      tags: ['Longue sortie', 'D+800m', '22km'] },
+    { day: 'Dim', session: 'Footing récup', detail: '10km plat', rest: false,
+      goal: 'Décrassage',
+      desc: '<b>10km à allure très facile</b> sur terrain plat, idéalement le lendemain matin de la sortie longue pour favoriser la récupération.',
+      tags: ['Facile', 'Plat', '10km'] },
   ];
 
-  const weekGrid = document.getElementById('weekGrid');
-  let weekKmTotal = 0;
-  weekPlan.forEach(d => {
-    const card = document.createElement('div');
-    card.className = 'day-card' + (d.today ? ' today' : '');
-    if (d.rest) {
-      card.innerHTML = `<div class="day-name">${d.day}</div><div class="rest-tag">Repos</div>`;
-    } else {
-      card.innerHTML = `<div class="day-name">${d.day}</div><div class="day-session">${d.session}</div><div class="day-detail">${d.detail}</div>`;
-      const kmMatch = d.detail.match(/(\d+)\s*km/);
-      if (kmMatch) weekKmTotal += parseInt(kmMatch[1]);
-    }
-    weekGrid.appendChild(card);
-  });
-  document.getElementById('weekKm').textContent = weekKmTotal;
+  function buildWeekGrid(containerId) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = '';
+    let weekKmTotal = 0;
+    weekPlan.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'day-card' + (d.today ? ' today' : '');
+      if (d.rest) {
+        card.innerHTML = `<div class="day-name">${d.day}</div><div class="rest-tag">Repos</div>`;
+      } else {
+        card.innerHTML = `<div class="day-name">${d.day}</div><div class="day-session">${d.session}</div><div class="day-detail">${d.detail}</div>`;
+        const kmMatch = d.detail.match(/(\d+)\s*km/);
+        if (kmMatch) weekKmTotal += parseInt(kmMatch[1]);
+      }
+      card.onclick = () => goTo('seances');
+      el.appendChild(card);
+    });
+    return weekKmTotal;
+  }
+  const wk = buildWeekGrid('weekGridDash');
+  buildWeekGrid('weekGridFull');
+  document.getElementById('weekKm').textContent = wk;
 
-  // --- RPE selector ---
+  // ============ ACCORDION — séances détaillées ============
+  function buildAccordion() {
+    const el = document.getElementById('accordionList');
+    el.innerHTML = weekPlan.map((d, i) => {
+      if (d.rest) {
+        return `
+        <div class="acc-item">
+          <div class="acc-head" onclick="toggleAcc(${i})">
+            <div class="acc-head-left">
+              <div class="acc-day-badge rest">${d.day}</div>
+              <div><div class="acc-title">Repos</div><div class="acc-meta">Jour off — récupération complète</div></div>
+            </div>
+          </div>
+        </div>`;
+      }
+      return `
+      <div class="acc-item" id="acc-${i}">
+        <div class="acc-head" onclick="toggleAcc(${i})">
+          <div class="acc-head-left">
+            <div class="acc-day-badge">${d.day}</div>
+            <div><div class="acc-title">${d.session}</div><div class="acc-meta">${d.detail}</div></div>
+          </div>
+          <div class="acc-chev">▾</div>
+        </div>
+        <div class="acc-body">
+          <div class="acc-body-inner">
+            <div><b>Objectif —</b> ${d.goal}</div>
+            <div style="margin-top:8px;">${d.desc}</div>
+            <div class="acc-tag-row">${d.tags.map(t => `<span class="acc-tag">${t}</span>`).join('')}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  function toggleAcc(i) {
+    const item = document.getElementById('acc-' + i);
+    if (item) item.classList.toggle('open');
+  }
+  buildAccordion();
+
+  // ============ RPE SELECTOR ============
   let selectedRpe = null;
   const rpeScale = document.getElementById('rpeScale');
   for (let i = 1; i <= 10; i++) {
@@ -466,7 +674,7 @@
     rpeScale.appendChild(btn);
   }
 
-  // --- Sessions state (loaded from Firebase) ---
+  // ============ SESSIONS (Firebase) ============
   let sessions = [];
 
   function loadSessions(uid) {
@@ -483,14 +691,8 @@
     const km = document.getElementById('f-km').value;
     const note = document.getElementById('f-note').value;
 
-    if (!selectedRpe) {
-      alert("Indique un niveau de ressenti d'effort (RPE) avant d'enregistrer.");
-      return;
-    }
-    if (!window.currentUser) {
-      alert("Connecte-toi pour enregistrer une séance.");
-      return;
-    }
+    if (!selectedRpe) { alert("Indique un niveau de ressenti d'effort (RPE) avant d'enregistrer."); return; }
+    if (!window.currentUser) { alert("Connecte-toi pour enregistrer une séance."); return; }
 
     const entry = {
       date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
@@ -511,40 +713,40 @@
   }
 
   function renderJournal() {
-    const list = document.getElementById('journalList');
     document.getElementById('sessCount').textContent = sessions.length;
-    document.getElementById('journalSub').textContent = sessions.length + (sessions.length > 1 ? ' séances' : ' séance');
+    document.getElementById('journalSub').textContent = sessions.length + (sessions.length > 1 ? ' séances enregistrées' : ' séance enregistrée');
 
-    if (sessions.length === 0) {
-      list.innerHTML = '<div class="empty-state">Aucune séance loguée pour l\'instant — la première entrée apparaîtra ici.</div>';
-      return;
-    }
-    list.innerHTML = sessions.map(s => `
-      <div class="log-entry">
-        <div class="log-left">
-          <div class="log-date">${s.date} · ${s.km} km</div>
-          <div class="log-title">${s.type}</div>
-          ${s.note ? `<div class="log-note">${s.note}</div>` : ''}
+    const renderList = (list, limit) => {
+      const items = limit ? list.slice(0, limit) : list;
+      if (items.length === 0) {
+        return '<div class="empty-state">Aucune séance loguée pour l\'instant.</div>';
+      }
+      return items.map(s => `
+        <div class="log-entry">
+          <div class="log-left">
+            <div class="log-date">${s.date} · ${s.km} km</div>
+            <div class="log-title">${s.type}</div>
+            ${s.note ? `<div class="log-note">${s.note}</div>` : ''}
+          </div>
+          <div><div class="log-rpe">${s.rpe}</div><div class="log-rpe-lbl">RPE</div></div>
         </div>
-        <div>
-          <div class="log-rpe">${s.rpe}</div>
-          <div class="log-rpe-lbl">RPE</div>
-        </div>
-      </div>
-    `).join('');
+      `).join('');
+    };
+
+    document.getElementById('journalList').innerHTML = renderList(sessions);
+    document.getElementById('journalListDash').innerHTML = renderList(sessions, 3);
   }
 
-  // --- Simple rule-based "AI suggestion" preview (placeholder logic) ---
   function maybeShowAiNote(entry) {
     const note = document.getElementById('aiNote');
     const painMentioned = /douleur|gêne|mal au|blessure/i.test(entry.note);
     const highRpe = entry.rpe >= 8;
 
     if (painMentioned) {
-      note.innerHTML = `<b>Suggestion :</b> une gêne a été signalée. Dans la vraie version, l'IA proposerait ici d'alléger la prochaine sortie longue et surveiller l'évolution avant de revenir à l'intensité prévue.`;
+      note.innerHTML = `<b>Suggestion :</b> une gêne a été signalée. Dans la version future, l'IA proposerait ici d'alléger la prochaine sortie longue et de surveiller l'évolution.`;
       note.classList.add('show');
     } else if (highRpe) {
-      note.innerHTML = `<b>Suggestion :</b> ressenti d'effort élevé (${entry.rpe}/10). L'IA pourrait recommander une journée de récupération supplémentaire avant la prochaine séance intense.`;
+      note.innerHTML = `<b>Suggestion :</b> ressenti d'effort élevé (${entry.rpe}/10). L'IA pourrait recommander une journée de récupération supplémentaire.`;
       note.classList.add('show');
     } else {
       note.classList.remove('show');
